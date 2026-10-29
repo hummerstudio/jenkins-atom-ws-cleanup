@@ -114,7 +114,7 @@ public class WsCleanupAtom implements AtomTask {
     private static boolean matches(Path workspace, Path path, List<PathMatcher> matchers) {
         Path relative = workspace.relativize(path);
         for (PathMatcher matcher : matchers) {
-            if (matcher.matches(relative) || matcher.matches(path.getFileName())) {
+            if (matcher.matches(relative) || matcher.matches(java.nio.file.Path.of("_").resolve(relative)) || matcher.matches(path.getFileName())) {
                 return true;
             }
         }

@@ -1,7 +1,7 @@
 {
   "atomCode": "ws-cleanup",
   "name": "Clean workspace",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Deletes what a glob matches inside the workspace and keeps what another glob protects (.git and .atoms are never touched).",
   "execution": {
     "packagePath": "ws-cleanup.jar",
@@ -26,13 +26,27 @@
     }
   },
   "output": {
-    "deletedFiles": { "type": "string", "description": "删除的文件数" },
-    "deletedDirs": { "type": "string", "description": "顺带清掉的空目录数" },
-    "freedBytes": { "type": "string", "description": "释放的字节数" },
-    "freedHuman": { "type": "string", "description": "人类可读的释放量" }
+    "deletedFiles": {
+      "type": "string",
+      "description": "删除的文件数"
+    },
+    "deletedDirs": {
+      "type": "string",
+      "description": "顺带清掉的空目录数"
+    },
+    "freedBytes": {
+      "type": "string",
+      "description": "释放的字节数"
+    },
+    "freedHuman": {
+      "type": "string",
+      "description": "人类可读的释放量"
+    }
   },
   "x-jenkins": {
     "protocol": "jenkins-1",
-    "requires": { "runner": ">=0.4.0" }
+    "requires": {
+      "runner": ">=0.4.0"
+    }
   }
 }
