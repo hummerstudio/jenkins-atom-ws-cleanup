@@ -1,0 +1,11 @@
+{
+  "name": "Clean workspace",
+  "summary": "把 ws-cleanup 插件变成一个原子：按 glob 删除 workspace，keep 优先，.git/.atoms 永不触碰。",
+  "author": "hummerstudio",
+  "license": "MIT",
+  "tags": [
+    "official-port",
+    "ws-cleanup"
+  ],
+  "homepage": "https://github.com/hummerstudio/jenkins-atom-ws-cleanup"
+}

@@ -1,0 +1,38 @@
+{
+  "atomCode": "ws-cleanup",
+  "name": "Clean workspace",
+  "version": "1.0.0",
+  "description": "Deletes what a glob matches inside the workspace and keeps what another glob protects (.git and .atoms are never touched).",
+  "execution": {
+    "packagePath": "ws-cleanup.jar",
+    "language": "java",
+    "target": "$atom_java_path -cp ws-cleanup.jar com.jenkinschina.atom.sdk.AtomRunner"
+  },
+  "input": {
+    "patterns": {
+      "label": "要删的（逗号分隔 glob，相对 workspace，如 **/target, **/*.log）",
+      "type": "vuex-input",
+      "default": "**/target, **/build"
+    },
+    "keep": {
+      "label": "要保留的（逗号分隔 glob，优先级高于删除）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "dryRun": {
+      "label": "只统计不删除",
+      "type": "checkbox",
+      "default": "false"
+    }
+  },
+  "output": {
+    "deletedFiles": { "type": "string", "description": "删除的文件数" },
+    "deletedDirs": { "type": "string", "description": "顺带清掉的空目录数" },
+    "freedBytes": { "type": "string", "description": "释放的字节数" },
+    "freedHuman": { "type": "string", "description": "人类可读的释放量" }
+  },
+  "x-jenkins": {
+    "protocol": "jenkins-1",
+    "requires": { "runner": ">=0.4.0" }
+  }
+}
