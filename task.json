@@ -1,7 +1,7 @@
 {
   "atomCode": "ws-cleanup",
   "name": "Clean workspace",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Deletes what a glob matches inside the workspace and keeps what another glob protects (.git and .atoms are never touched).",
   "execution": {
     "packagePath": "ws-cleanup.jar",
@@ -21,6 +21,16 @@
     },
     "dryRun": {
       "label": "只统计不删除",
+      "type": "checkbox",
+      "default": "false"
+    },
+    "deleteDirs": {
+      "label": "连同目录一起删除",
+      "type": "checkbox",
+      "default": "true"
+    },
+    "notFailBuild": {
+      "label": "删除失败不红构建（置为 UNSTABLE）",
       "type": "checkbox",
       "default": "false"
     }

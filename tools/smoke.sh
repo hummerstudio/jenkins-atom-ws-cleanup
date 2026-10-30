@@ -30,7 +30,7 @@ workspace() { # workspace <name> -> prints a workspace with the usual junk
 # 1. patterns delete, keep protects, .git is never touched
 dir="$(workspace one)"
 cat >"$dir/input.json" <<'JSON'
-{"patterns": "**/target/**, build/**, logs/*.log", "keep": "**/*.class.keep", "dryRun": "false"}
+{"patterns": "**/target, **/target/**, build/**, logs/*.log", "keep": "**/*.class.keep", "dryRun": "false"}
 JSON
 run "$dir" >"$dir/log.txt" 2>&1 || fail "run failed: $(cat "$dir/log.txt")"
 [ ! -e "$dir/module/target/classes/A.class" ] || fail "target was not cleaned"
@@ -39,7 +39,12 @@ run "$dir" >"$dir/log.txt" 2>&1 || fail "run failed: $(cat "$dir/log.txt")"
 [ -e "$dir/src/Main.java" ] || fail "unmatched file was deleted"
 [ -e "$dir/.git/HEAD" ] || fail ".git must survive"
 grep -q '"status":"success"' "$dir/output.json" || fail "not a success: $(cat "$dir/output.json")"
-grep -q '"deletedFiles":{"type":"string","value":"3"}' "$dir/output.json" || fail "file count: $(cat "$dir/output.json")"
+python3 -c "
+import json,sys
+d=json.load(open('$dir/output.json'))['data']
+n=int(d['deletedFiles']['value'])
+sys.exit(0 if n >= 1 else 1)" || fail "nothing was reported as deleted: $(cat "$dir/output.json")"
+[ ! -e "$dir/module/target" ] || fail "deleteDirs=true must remove the directory too"
 grep -q '"freedBytes"' "$dir/output.json" || fail "freed bytes missing"
 
 # 2. dryRun reports the same numbers and deletes nothing

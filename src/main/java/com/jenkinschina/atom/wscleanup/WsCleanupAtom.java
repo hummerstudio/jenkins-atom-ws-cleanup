@@ -30,6 +30,9 @@ public class WsCleanupAtom implements AtomTask {
         String patterns = context.getParam("patterns", "");
         String keep = context.getParam("keep", "");
         boolean dryRun = context.getBooleanParam("dryRun", false);
+        // the plugin's deleteDirs: without it only files are removed and the empty tree stays
+        boolean deleteDirs = context.getBooleanParam("deleteDirs", true);
+        boolean notFailBuild = context.getBooleanParam("notFailBuild", false);
 
         List<PathMatcher> delete = matchers(patterns);
         List<PathMatcher> protect = matchers(keep);
@@ -40,7 +43,8 @@ public class WsCleanupAtom implements AtomTask {
         List<Path> candidates = new ArrayList<>();
         try (var walk = Files.walk(workspace, 16)) {
             walk.filter(path -> !path.equals(workspace))
-                    .filter(Files::isRegularFile)
+                    .filter(path -> Files.isRegularFile(path)
+                            || (deleteDirs && Files.isDirectory(path)))
                     .filter(path -> matches(workspace, path, delete))
                     .filter(path -> !matches(workspace, path, protect))
                     .filter(path -> !forbidden(workspace, path))
@@ -51,55 +55,58 @@ public class WsCleanupAtom implements AtomTask {
 
         long bytes = 0;
         int deleted = 0;
+        int deletedDirs = 0;
+        int failed = 0;
         for (Path file : candidates) {
             try {
-                long size = Files.size(file);
+                long size = Files.isRegularFile(file) ? Files.size(file) : 0;
                 if (!dryRun) {
-                    Files.deleteIfExists(file);
+                    if (Files.isDirectory(file)) {
+                        deleteTree(file);
+                    } else {
+                        Files.deleteIfExists(file);
+                    }
                 }
                 bytes += size;
-                deleted++;
+                if (Files.isDirectory(file)) {
+                    deletedDirs++;
+                } else {
+                    deleted++;
+                }
             } catch (Exception e) {
+                failed++;
                 context.log("[ws-cleanup] could not delete " + file + ": " + e.getMessage());
             }
         }
 
-        // directories the deletions emptied, deepest first
-        int directories = 0;
-        if (!dryRun) {
-            List<Path> empty = new ArrayList<>();
-            try (var walk = Files.walk(workspace, 16)) {
-                walk.filter(Files::isDirectory)
-                        .filter(path -> !path.equals(workspace))
-                        .filter(path -> !forbidden(workspace, path))
-                        .filter(path -> matches(workspace, path, delete))
-                        .sorted(Comparator.comparingInt(Path::getNameCount).reversed())
-                        .forEach(empty::add);
-            }
-            for (Path dir : empty) {
-                try (var entries = Files.list(dir)) {
-                    if (entries.findAny().isEmpty()) {
-                        Files.delete(dir);
-                        directories++;
-                    }
-                } catch (Exception ignored) {
-                    // the directory disappeared or is not ours to remove
-                }
-            }
-        }
-
         context.log("[ws-cleanup] " + (dryRun ? "would delete " : "deleted ") + deleted + " files, "
-                + directories + " directories, " + human(bytes) + " in " + workspace);
+                + deletedDirs + " directories, " + human(bytes) + " in " + workspace);
 
         AtomResult result = AtomResult.success()
                 .data("deletedFiles", String.valueOf(deleted))
-                .data("deletedDirs", String.valueOf(directories))
+                .data("failed", String.valueOf(failed))
+                .data("deletedDirs", String.valueOf(deletedDirs))
                 .data("freedBytes", String.valueOf(bytes))
                 .data("freedHuman", human(bytes));
         if (dryRun) {
             result.data("dryRun", "true");
         }
+        if (failed > 0) {
+            // the plugin's notFailBuild: a file we cannot remove is a warning, not a red build
+            if (notFailBuild) {
+                return result.markUnstable();
+            }
+            return AtomResult.failure(failed + " file(s) could not be deleted");
+        }
         return result;
+    }
+
+    private static void deleteTree(Path root) throws java.io.IOException {
+        try (var walk = Files.walk(root)) {
+            for (Path path : walk.sorted(java.util.Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        }
     }
 
     private static boolean forbidden(Path workspace, Path path) {
