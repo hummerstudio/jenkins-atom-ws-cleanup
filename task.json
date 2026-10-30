@@ -1,7 +1,7 @@
 {
   "atomCode": "ws-cleanup",
   "name": "Clean workspace",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Deletes what a glob matches inside the workspace and keeps what another glob protects (.git and .atoms are never touched).",
   "execution": {
     "packagePath": "ws-cleanup.jar",
