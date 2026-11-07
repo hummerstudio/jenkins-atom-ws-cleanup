@@ -11,9 +11,11 @@ Pipeline has `cleanWs()`; this is for jobs that call atoms, and for the cases wh
 * `dryRun` — report the same numbers, delete nothing
 * outputs — `deletedFiles`, `deletedDirs`, `freedBytes`, `freedHuman`
 
-## Build and smoke test
+## Build and test
 
 ```bash
-./build.sh
-./tools/smoke.sh       # delete+keep, dry run, keep precedence, empty patterns
+mvn verify             # → target/dist/ws-cleanup/{ws-cleanup.jar,task.json}
 ```
+
+`src/test/java/atom/WsCleanupIT.java` runs the packaged jar against a throwaway workspace: delete+keep, dry run, keep
+precedence, empty patterns.
