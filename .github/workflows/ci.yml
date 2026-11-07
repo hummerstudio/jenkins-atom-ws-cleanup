@@ -37,4 +37,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ws-cleanup-atom
-          path: atom/dist/ws-cleanup/
+          path: atom/target/dist/ws-cleanup/
